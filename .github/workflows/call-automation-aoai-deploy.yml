@@ -68,7 +68,7 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
+          file: Dockerfile
 
   deploy:
     permissions:
