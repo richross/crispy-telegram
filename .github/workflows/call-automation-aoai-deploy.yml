@@ -43,6 +43,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
 
     steps:
       - uses: actions/checkout@v4
