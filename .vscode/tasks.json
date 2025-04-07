@@ -1,0 +1,47 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "docker-run",
+            "label": "docker-run: debug",
+            "dependsOn": [
+                "docker-build"
+            ],
+            "dockerRun": {
+                "containerName": "callautomation-azopenai-voice",
+                "env": {
+                    "ASPNETCORE_ENVIRONMENT": "Development"
+                },
+                "ports": [
+                    { "hostPort": 8080, "containerPort": 80 },
+                    { "hostPort": 8081, "containerPort": 443 }
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}",
+                        "containerPath": "/app",
+                        "permissions": "rw"
+                    }
+                ],
+                "image": "callautomation-azopenai-voice:dev",
+                "removeContainerAfterRun": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj"
+            }
+        },
+        {
+            "label": "docker-build",
+            "command": "docker",
+            "args": [
+                "build",
+                "-t",
+                "callautomation-azopenai-voice:dev",
+                "--target=build",
+                "-f",
+                "${workspaceFolder}/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile",
+                "${workspaceFolder}/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice"
+            ]
+        }
+    ]
+}
