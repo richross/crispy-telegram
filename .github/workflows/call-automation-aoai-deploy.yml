@@ -34,7 +34,7 @@ on:
     branches: [ "Main" ]
     # include a folder for changes
     paths:
-        - "src/CallAutomation/CallAutomation/*"
+        - "src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/*"
   workflow_dispatch:
 
 permissions:
