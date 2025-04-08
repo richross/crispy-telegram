@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src
+        working-directory: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice
         
     steps:
       - name: get the files
@@ -72,7 +72,7 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: ./Dockerfile
+          file: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
 
   deploy:
     permissions:
