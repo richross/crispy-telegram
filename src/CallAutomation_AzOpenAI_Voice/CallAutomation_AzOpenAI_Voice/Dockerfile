@@ -11,7 +11,7 @@ EXPOSE 8089
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+WORKDIR /src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
 COPY ["CallAutomation_AzOpenAI_Voice.csproj", "."]
 RUN dotnet restore "./CallAutomation_AzOpenAI_Voice.csproj"
 COPY . .
