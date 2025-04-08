@@ -52,6 +52,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: Whare am I?
+        run: ls
+
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
