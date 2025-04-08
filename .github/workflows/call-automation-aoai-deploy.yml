@@ -48,7 +48,8 @@ jobs:
         working-directory: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
 
     steps:
-      - uses: actions/checkout@v4
+      - name: get the files
+        uses: actions/checkout@v4
 
       - name: List files - whaere are we?
         run: ls
@@ -69,10 +70,9 @@ jobs:
       - name: Build and push container image to registry
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          working-directory: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: ./Dockerfile
+          file: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
 
   deploy:
     permissions:
