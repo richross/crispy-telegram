@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice
+        working-directory: ./src
         
     steps:
       - name: get the files
