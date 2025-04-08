@@ -34,7 +34,7 @@ on:
     branches: [ "Main" ]
     # include a folder for changes
     paths:
-        - "src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/*"
+        - "./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/*"
   workflow_dispatch:
 
 permissions:
@@ -43,7 +43,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
+        
     steps:
       - name: get the files
         uses: actions/checkout@v4
@@ -69,7 +72,7 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
+          file: ./Dockerfile
 
   deploy:
     permissions:
