@@ -4,6 +4,8 @@ using OpenAI.RealtimeConversation;
 using Azure.AI.OpenAI;
 using System.ClientModel;
 using Azure.Communication.CallAutomation;
+using System.ComponentModel;
+using System.Reflection.Metadata;
 
 #pragma warning disable OPENAI002
 namespace CallAutomationOpenAI
@@ -16,6 +18,9 @@ namespace CallAutomationOpenAI
         private AcsMediaStreamingHandler m_mediaStreaming;
         private MemoryStream m_memoryStream;
         private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information.";
+        // function call that does the search. in the prompt, look up and leverage
+        // starbucks project is using the same kind of approach.
+        // avoid having the prompt be too detailed
 
         public AzureOpenAIService(AcsMediaStreamingHandler mediaStreaming, IConfiguration configuration)
         {            
@@ -42,6 +47,8 @@ namespace CallAutomationOpenAI
             var RealtimeCovnClient = aiClient.GetRealtimeConversationClient(openAiModelName);
             var session =  await RealtimeCovnClient.StartConversationSessionAsync();
 
+            Capabilities tools = new Capabilities();
+
             // Session options control connection-wide behavior shared across all conversations,
             // including audio input format and voice activity detection settings.
             ConversationSessionOptions sessionOptions = new()
@@ -54,9 +61,12 @@ namespace CallAutomationOpenAI
                 {
                     Model = "whisper-1",
                 },
-                TurnDetectionOptions = ConversationTurnDetectionOptions.CreateServerVoiceActivityTurnDetectionOptions(0.5f, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500)),
+                TurnDetectionOptions = ConversationTurnDetectionOptions.CreateServerVoiceActivityTurnDetectionOptions(0.5f, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500))
             };
-
+            
+            //load the tools from the class
+            tools.AvailableTools.ForEach(tool => sessionOptions.Tools.Add(tool));
+            
             await session.ConfigureSessionAsync(sessionOptions);
             return session;
         }
