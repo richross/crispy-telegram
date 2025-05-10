@@ -15,7 +15,7 @@ WORKDIR /src
 COPY ["CallAutomation_AzOpenAI_Voice.csproj", "."]
 RUN dotnet restore "./CallAutomation_AzOpenAI_Voice.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/CallAutomation_AzOpenAI_Voice/."
 RUN dotnet build "./CallAutomation_AzOpenAI_Voice.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

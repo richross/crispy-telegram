@@ -16,6 +16,9 @@ namespace CallAutomationOpenAI
         private AcsMediaStreamingHandler m_mediaStreaming;
         private MemoryStream m_memoryStream;
         private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information.";
+        // function call that does the search. in the prompt, look up and leverage
+        // starbucks project is using the same kind of approach.
+        // avoid having the prompt be too detailed
 
         public AzureOpenAIService(AcsMediaStreamingHandler mediaStreaming, IConfiguration configuration)
         {            
