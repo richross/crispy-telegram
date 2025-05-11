@@ -47,8 +47,6 @@ namespace CallAutomationOpenAI
             var RealtimeCovnClient = aiClient.GetRealtimeConversationClient(openAiModelName);
             var session =  await RealtimeCovnClient.StartConversationSessionAsync();
 
-            Capabilities tools = new Capabilities();
-
             // Session options control connection-wide behavior shared across all conversations,
             // including audio input format and voice activity detection settings.
             ConversationSessionOptions sessionOptions = new()
@@ -65,6 +63,7 @@ namespace CallAutomationOpenAI
             };
             
             //load the tools from the class
+            Capabilities tools = new Capabilities();
             tools.AvailableTools.ForEach(tool => sessionOptions.Tools.Add(tool));
             
             await session.ConfigureSessionAsync(sessionOptions);
@@ -123,10 +122,10 @@ namespace CallAutomationOpenAI
                         }
                     }
 
-                    if (update is ConversationItemStreamingTextFinishedUpdate itemFinishedUpdate)
+                    if (update is ConversationItemStreamingTextFinishedUpdate itemTextFinishedUpdate)
                     {
                         Console.WriteLine();
-                        Console.WriteLine($"  -- Item streaming finished, response_id={itemFinishedUpdate.ResponseId}");
+                        Console.WriteLine($"  -- Item streaming finished, response_id={itemTextFinishedUpdate.ResponseId}");
                     }
 
                     if (update is ConversationInputTranscriptionFinishedUpdate transcriptionCompletedUpdate)
@@ -139,6 +138,20 @@ namespace CallAutomationOpenAI
                     if (update is ConversationResponseFinishedUpdate turnFinishedUpdate)
                     {
                         Console.WriteLine($"  -- Model turn generation finished. Status: {turnFinishedUpdate.Status}");
+                    }
+
+                    if (update is ConversationItemStreamingFinishedUpdate itemStreamingFinishedUpdate)
+                    {
+                        if(!string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionName) && !string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionCallOutput))
+                        {
+                            Console.WriteLine($"  -- Function call: {itemStreamingFinishedUpdate.FunctionName}");
+                            Console.WriteLine($"  -- Function call arguments: {itemStreamingFinishedUpdate.FunctionCallOutput}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  -- No function call");
+                        }
+                        Console.WriteLine($"  -- Item streaming finished, response_id={itemStreamingFinishedUpdate.ResponseId}");
                     }
 
                     if (update is ConversationErrorUpdate errorUpdate)
