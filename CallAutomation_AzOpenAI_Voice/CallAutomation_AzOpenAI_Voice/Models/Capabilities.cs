@@ -6,7 +6,7 @@ namespace CallAutomationOpenAI;
 #pragma warning disable OPENAI002
 public class Capabilities
 {
-    public List<ConversationTool> AvailableTools { get; set; } = new List<ConversationTool>();
+    public List<ConversationFunctionTool> AvailableTools { get; set; } = new List<ConversationFunctionTool>();
 
     public Capabilities()
     {
@@ -20,7 +20,7 @@ public class Capabilities
                     "properties": {
                         "action": {
                             "type": "string",
-                            "description": "The action to perform (e.g., 'getBalance', 'getLastTransaction')"
+                            "description": "The action to perform (e.g., 'get balance', 'get Last Transaction')"
                         },
                         "parameters": {
                             "type": "object",

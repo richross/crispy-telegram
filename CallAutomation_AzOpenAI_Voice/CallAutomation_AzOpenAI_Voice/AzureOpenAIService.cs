@@ -6,6 +6,7 @@ using System.ClientModel;
 using Azure.Communication.CallAutomation;
 using System.ComponentModel;
 using System.Reflection.Metadata;
+using CallAutomationOpenAI.Handlers;
 
 #pragma warning disable OPENAI002
 namespace CallAutomationOpenAI
@@ -17,10 +18,11 @@ namespace CallAutomationOpenAI
         private RealtimeConversationSession m_aiSession;
         private AcsMediaStreamingHandler m_mediaStreaming;
         private MemoryStream m_memoryStream;
-        private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information.";
+        private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information about their financial portfolio.";
         // function call that does the search. in the prompt, look up and leverage
         // starbucks project is using the same kind of approach.
         // avoid having the prompt be too detailed
+        private Capabilities tools;
 
         public AzureOpenAIService(AcsMediaStreamingHandler mediaStreaming, IConfiguration configuration)
         {            
@@ -28,6 +30,7 @@ namespace CallAutomationOpenAI
             m_cts = new CancellationTokenSource();
             m_aiSession =  CreateAISessionAsync(configuration).GetAwaiter().GetResult();
             m_memoryStream = new MemoryStream();
+            tools = new Capabilities();
         }
 
         private async Task<RealtimeConversationSession> CreateAISessionAsync(IConfiguration configuration)
@@ -52,7 +55,7 @@ namespace CallAutomationOpenAI
             ConversationSessionOptions sessionOptions = new()
             {
                 Instructions = systemPrompt,
-                Voice = ConversationVoice.Alloy,
+                Voice = ConversationVoice.Shimmer,
                 InputAudioFormat = ConversationAudioFormat.Pcm16,
                 OutputAudioFormat = ConversationAudioFormat.Pcm16,
                 InputTranscriptionOptions = new()
@@ -63,7 +66,6 @@ namespace CallAutomationOpenAI
             };
             
             //load the tools from the class
-            Capabilities tools = new Capabilities();
             tools.AvailableTools.ForEach(tool => sessionOptions.Tools.Add(tool));
             
             await session.ConfigureSessionAsync(sessionOptions);
@@ -142,7 +144,7 @@ namespace CallAutomationOpenAI
 
                     if (update is ConversationItemStreamingFinishedUpdate itemStreamingFinishedUpdate)
                     {
-                        if(!string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionName) && !string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionCallOutput))
+                        if(!string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionName) && await itemStreamingFinishedUpdate.GetFunctionCallOutputAsync(tools.AvailableTools) is { } output)
                         {
                             Console.WriteLine($"  -- Function call: {itemStreamingFinishedUpdate.FunctionName}");
                             Console.WriteLine($"  -- Function call arguments: {itemStreamingFinishedUpdate.FunctionCallOutput}");
