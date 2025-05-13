@@ -1,0 +1,55 @@
+# Workflow for deploying to Azure App Service
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch if different
+    paths:
+      - 'CallAutomation_AzOpenAI_Voice/**'  # Only trigger workflow when this folder changes
+  workflow_dispatch:  # Allows manual triggering from the GitHub UI
+
+permissions:
+  id-token: write  # Required for OIDC authentication
+  contents: read   # Required to checkout the repository
+
+env:
+  AZURE_RESOURCE_GROUP: project-crispy-telegram
+  AZURE_APP_SERVICE_NAME: crispy-telegram-web
+  DOTNET_VERSION: '8'  # Update this to match your project's .NET version
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Using Ubuntu runner as the App Service plan is Linux
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj
+
+    - name: Build application
+      run: dotnet build ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-restore
+
+    - name: Publish application
+      run: dotnet publish ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-build --output ./publish
+
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_APP_SERVICE_NAME }}
+        resource-group-name: ${{ env.AZURE_RESOURCE_GROUP }}
+        package: ./publish
