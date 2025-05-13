@@ -22,7 +22,7 @@ namespace CallAutomationOpenAI
         // function call that does the search. in the prompt, look up and leverage
         // starbucks project is using the same kind of approach.
         // avoid having the prompt be too detailed
-        private Capabilities tools;
+        private Capabilities tools = new Capabilities();
 
         public AzureOpenAIService(AcsMediaStreamingHandler mediaStreaming, IConfiguration configuration)
         {            
@@ -30,7 +30,6 @@ namespace CallAutomationOpenAI
             m_cts = new CancellationTokenSource();
             m_aiSession =  CreateAISessionAsync(configuration).GetAwaiter().GetResult();
             m_memoryStream = new MemoryStream();
-            tools = new Capabilities();
         }
 
         private async Task<RealtimeConversationSession> CreateAISessionAsync(IConfiguration configuration)
@@ -140,18 +139,32 @@ namespace CallAutomationOpenAI
                     if (update is ConversationResponseFinishedUpdate turnFinishedUpdate)
                     {
                         Console.WriteLine($"  -- Model turn generation finished. Status: {turnFinishedUpdate.Status}");
-                    }
-
+                    }                    
+                    
                     if (update is ConversationItemStreamingFinishedUpdate itemStreamingFinishedUpdate)
                     {
                         if(!string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionName) && await itemStreamingFinishedUpdate.GetFunctionCallOutputAsync(tools.AvailableTools) is { } output)
                         {
                             Console.WriteLine($"  -- Function call: {itemStreamingFinishedUpdate.FunctionName}");
-                            Console.WriteLine($"  -- Function call arguments: {itemStreamingFinishedUpdate.FunctionCallOutput}");
+                            Console.WriteLine($"  -- Function call arguments: {itemStreamingFinishedUpdate.FunctionCallArguments}");
+                            
+                            try
+                            {
+                                // Add the function output to the conversation
+                                await m_aiSession.AddItemAsync(output);
+                                Console.WriteLine($"  -- Function output added to conversation");
+                                
+                                // Continue the conversation with the model to process the function output
+                                await m_aiSession.StartResponseAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"  -- Error adding function output to conversation: {ex.Message}");
+                            }
                         }
                         else
                         {
-                            Console.WriteLine($"  -- No function call");
+                            Console.WriteLine($"  -- No function call or function call execution error");
                         }
                         Console.WriteLine($"  -- Item streaming finished, response_id={itemStreamingFinishedUpdate.ResponseId}");
                     }

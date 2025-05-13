@@ -13,24 +13,31 @@ namespace CallAutomationOpenAI.Handlers
         {
             if (!string.IsNullOrEmpty(update.FunctionName) && tools.FirstOrDefault(t => t.Name == update.FunctionName) is ConversationFunctionTool functionTool)
             {
-                Dictionary<string, object?>? jsonArgs = null;
                 try
                 {
-                    jsonArgs = JsonSerializer.Deserialize<Dictionary<string, object?>>(update.FunctionCallArguments);
-                    var output = ""; // TODO: need to understand how AIFunction Invoke translates to the RealtimeConversation object.
-                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, output?.ToString() ?? "");
+                    // Dispatch the function call to our implementation
+                    string output = await FunctionImplementations.DispatchFunctionCallAsync(
+                        update.FunctionName,
+                        update.FunctionCallArguments);
+                    
+                    Console.WriteLine($"Function {update.FunctionName} returned: {output}");
+                    
+                    // Return the function call output to be sent back to the model
+                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, output);
                 }
-                catch (JsonException)
+                catch (JsonException ex)
                 {
-                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, "Invalid JSON");
+                    Console.WriteLine($"Invalid JSON in function arguments: {ex.Message}");
+                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, "Invalid JSON in function arguments");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, "Error Calling Tool!");
+                    Console.WriteLine($"Error executing function {update.FunctionName}: {ex.Message}");
+                    return ConversationItem.CreateFunctionCallOutput(update.FunctionCallId, "Error executing function");
                 }
             }
 
-            //TODO: there must be a better return object?
+            // No function call or matching tool found
             return null;
         }
     }
