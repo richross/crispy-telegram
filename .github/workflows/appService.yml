@@ -22,9 +22,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest  # Using Ubuntu runner as the App Service plan is Linux
 
-    steps:
+    steps:    
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for git rev-parse
+
+    - name: Get Git Commit Hash
+      id: git-hash
+      run: echo "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -45,11 +51,13 @@ jobs:
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}    
+    
     - name: Deploy to Azure App Service
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_APP_SERVICE_NAME }}
         resource-group-name: ${{ env.AZURE_RESOURCE_GROUP }}
         package: ./publish
+        app-settings: |
+          GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}

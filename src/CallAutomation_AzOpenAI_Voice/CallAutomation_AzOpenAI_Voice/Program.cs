@@ -20,11 +20,14 @@ var appBaseUrl = Environment.GetEnvironmentVariable("VS_TUNNEL_URL")?.TrimEnd('/
 
 if (string.IsNullOrEmpty(appBaseUrl))
 {
-    appBaseUrl = builder.Configuration.GetValue<string>("DevTunnelUri")?.TrimEnd('/');;
+    appBaseUrl = builder.Configuration.GetValue<string>("DevTunnelUri")?.TrimEnd('/');
     Console.WriteLine($"appBaseUrl :{appBaseUrl}");
 }
 
-app.MapGet("/", () => "Hello ACS CallAutomation!");
+// Get Git commit hash from environment variable
+var gitCommitHash = Environment.GetEnvironmentVariable("GIT_COMMIT_HASH") ?? "development";
+
+app.MapGet("/", () => $"Hello ACS CallAutomation! [Version: {gitCommitHash}]");
 
 // this endpoint is configued in Event Grid subscription when a call is received from ACS
 // and has the matching incoming number.
