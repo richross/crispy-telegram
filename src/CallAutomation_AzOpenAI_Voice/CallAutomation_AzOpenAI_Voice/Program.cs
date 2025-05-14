@@ -4,6 +4,7 @@ using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+//using System.Text.Json; TODO: modernize this code
 using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,8 @@ if (string.IsNullOrEmpty(appBaseUrl))
 
 app.MapGet("/", () => "Hello ACS CallAutomation!");
 
+// this endpoint is configued in Event Grid subscription when a call is received from ACS
+// and has the matching incoming number.
 app.MapPost("/api/incomingCall", async (
     [FromBody] EventGridEvent[] eventGridEvents,
     ILogger<Program> logger) =>
@@ -33,7 +36,7 @@ app.MapPost("/api/incomingCall", async (
     {
         Console.WriteLine($"Incoming Call event received.");
 
-        // Handle system events
+        // Handle system events - like the initial validation by the Event Grid subscription
         if (eventGridEvent.TryGetSystemEventData(out object eventData))
         {
             // Handle the subscription validation event.
@@ -47,6 +50,7 @@ app.MapPost("/api/incomingCall", async (
             }
         }
 
+        // normal call communication events happen here
         var jsonObject = Helper.GetJsonObject(eventGridEvent.Data);
         var callerId = Helper.GetCallerId(jsonObject);
         var incomingCallContext = Helper.GetIncomingCallContext(jsonObject);
