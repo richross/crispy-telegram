@@ -6,7 +6,7 @@ on:
     branches:
       - main  # Change this to your default branch if different
     paths:
-      - 'CallAutomation_AzOpenAI_Voice/**'  # Only trigger workflow when this folder changes
+      - 'src/CallAutomation_AzOpenAI_Voice/**'  # Only trigger workflow when this folder changes
   workflow_dispatch:  # Allows manual triggering from the GitHub UI
 
 permissions:
@@ -32,13 +32,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj
+      run: dotnet restore ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj
 
     - name: Build application
-      run: dotnet build ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-restore
+      run: dotnet build ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-restore
 
     - name: Publish application
-      run: dotnet publish ./CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-build --output ./publish
+      run: dotnet publish ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-build --output ./publish
 
     - name: Login to Azure
       uses: azure/login@v2

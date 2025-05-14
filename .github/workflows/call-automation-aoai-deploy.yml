@@ -30,11 +30,11 @@ env:
   AZURE_WEBAPP_NAME: crispy-telegram  # set this to the name of your Azure Web App
 
 on:
-  push:
-    branches: [ "Main" ]
-    # include a folder for changes
-    paths:
-        - "CallAutomation/CallAutomation/*"
+  # push:
+  #   branches: [ "Main" ]
+  #   # include a folder for changes
+  #   paths:
+  #       - "CallAutomation/CallAutomation/*"
   workflow_dispatch:
 
 permissions:
