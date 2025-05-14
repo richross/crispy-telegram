@@ -4,6 +4,9 @@ using OpenAI.RealtimeConversation;
 using Azure.AI.OpenAI;
 using System.ClientModel;
 using Azure.Communication.CallAutomation;
+using System.ComponentModel;
+using System.Reflection.Metadata;
+using CallAutomationOpenAI.Handlers;
 
 #pragma warning disable OPENAI002
 namespace CallAutomationOpenAI
@@ -15,7 +18,11 @@ namespace CallAutomationOpenAI
         private RealtimeConversationSession m_aiSession;
         private AcsMediaStreamingHandler m_mediaStreaming;
         private MemoryStream m_memoryStream;
-        private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information.";
+        private string m_answerPromptSystemTemplate = "You are an AI assistant that helps people find information about their financial portfolio.";
+        // function call that does the search. in the prompt, look up and leverage
+        // starbucks project is using the same kind of approach.
+        // avoid having the prompt be too detailed
+        private Capabilities tools = new Capabilities();
 
         public AzureOpenAIService(AcsMediaStreamingHandler mediaStreaming, IConfiguration configuration)
         {            
@@ -47,16 +54,19 @@ namespace CallAutomationOpenAI
             ConversationSessionOptions sessionOptions = new()
             {
                 Instructions = systemPrompt,
-                Voice = ConversationVoice.Alloy,
+                Voice = ConversationVoice.Shimmer,
                 InputAudioFormat = ConversationAudioFormat.Pcm16,
                 OutputAudioFormat = ConversationAudioFormat.Pcm16,
                 InputTranscriptionOptions = new()
                 {
                     Model = "whisper-1",
                 },
-                TurnDetectionOptions = ConversationTurnDetectionOptions.CreateServerVoiceActivityTurnDetectionOptions(0.5f, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500)),
+                TurnDetectionOptions = ConversationTurnDetectionOptions.CreateServerVoiceActivityTurnDetectionOptions(0.5f, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500))
             };
-
+            
+            //load the tools from the class
+            tools.AvailableTools.ForEach(tool => sessionOptions.Tools.Add(tool));
+            
             await session.ConfigureSessionAsync(sessionOptions);
             return session;
         }
@@ -113,10 +123,10 @@ namespace CallAutomationOpenAI
                         }
                     }
 
-                    if (update is ConversationItemStreamingTextFinishedUpdate itemFinishedUpdate)
+                    if (update is ConversationItemStreamingTextFinishedUpdate itemTextFinishedUpdate)
                     {
                         Console.WriteLine();
-                        Console.WriteLine($"  -- Item streaming finished, response_id={itemFinishedUpdate.ResponseId}");
+                        Console.WriteLine($"  -- Item streaming finished, response_id={itemTextFinishedUpdate.ResponseId}");
                     }
 
                     if (update is ConversationInputTranscriptionFinishedUpdate transcriptionCompletedUpdate)
@@ -129,6 +139,34 @@ namespace CallAutomationOpenAI
                     if (update is ConversationResponseFinishedUpdate turnFinishedUpdate)
                     {
                         Console.WriteLine($"  -- Model turn generation finished. Status: {turnFinishedUpdate.Status}");
+                    }                    
+                    
+                    if (update is ConversationItemStreamingFinishedUpdate itemStreamingFinishedUpdate)
+                    {
+                        if(!string.IsNullOrEmpty(itemStreamingFinishedUpdate.FunctionName) && await itemStreamingFinishedUpdate.GetFunctionCallOutputAsync(tools.AvailableTools) is { } output)
+                        {
+                            Console.WriteLine($"  -- Function call: {itemStreamingFinishedUpdate.FunctionName}");
+                            Console.WriteLine($"  -- Function call arguments: {itemStreamingFinishedUpdate.FunctionCallArguments}");
+                            
+                            try
+                            {
+                                // Add the function output to the conversation
+                                await m_aiSession.AddItemAsync(output);
+                                Console.WriteLine($"  -- Function output added to conversation");
+                                
+                                // Continue the conversation with the model to process the function output
+                                await m_aiSession.StartResponseAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"  -- Error adding function output to conversation: {ex.Message}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  -- No function call or function call execution error");
+                        }
+                        Console.WriteLine($"  -- Item streaming finished, response_id={itemStreamingFinishedUpdate.ResponseId}");
                     }
 
                     if (update is ConversationErrorUpdate errorUpdate)

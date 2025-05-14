@@ -34,7 +34,7 @@ on:
     branches: [ "Main" ]
     # include a folder for changes
     paths:
-        - "./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/*"
+        - "CallAutomation/CallAutomation/*"
   workflow_dispatch:
 
 permissions:
@@ -45,14 +45,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice
-        
-    steps:
-      - name: get the files
-        uses: actions/checkout@v4
+        working-directory: CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/
 
-      - name: List files - whaere are we?
-        run: ls
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
@@ -72,7 +68,7 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
+          file: src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/Dockerfile
 
   deploy:
     permissions:
