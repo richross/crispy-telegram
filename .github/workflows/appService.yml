@@ -4,7 +4,7 @@ name: Deploy to Azure App Service
 on:
   push:
     branches:
-      - main  # Change this to your default branch if different
+      - Main  # Updated to match your actual branch name (capital M)
     paths:
       - 'src/CallAutomation_AzOpenAI_Voice/**'  # Only trigger workflow when this folder changes
   workflow_dispatch:  # Allows manual triggering from the GitHub UI
@@ -39,9 +39,9 @@ jobs:
 
     - name: Publish application
       run: dotnet publish ./src/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice/CallAutomation_AzOpenAI_Voice.csproj --configuration Release --no-build --output ./publish
-
+      
     - name: Login to Azure
-      uses: azure/login@v2
+      uses: azure/login@v1
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
